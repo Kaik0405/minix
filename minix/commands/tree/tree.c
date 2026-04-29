@@ -64,9 +64,9 @@ void print_tree(char *path, int level) {
 
         /* Print indentation based on the depth level */
         for(int i = 0; i < level; i++){
-            printf("│   ");
+            printf("|   ");
         }
-        printf("├── %s\n", entry->d_name);
+        printf("|-- %s\n", entry->d_name);
         
         /* RECURSION: Only descend if it's a directory AND NOT a symbolic link */
         if (S_ISDIR(info.st_mode) && !S_ISLNK(info.st_mode)) {
