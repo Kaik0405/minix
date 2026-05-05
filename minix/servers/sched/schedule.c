@@ -96,9 +96,8 @@ int do_noquantum(message *m_ptr)
 	}
 
 	rmp = &schedproc[proc_nr_n];
-	if (rmp->priority < MIN_USER_Q) {
-		rmp->priority += 1; /* lower priority */
-	}
+	/* Increment the counter instead of reducing priority immediately */
+	rmp->cpu_exhaust_count += 1;
 
 	if ((rv = schedule_process_local(rmp)) != OK) {
 		return rv;
@@ -194,6 +193,7 @@ int do_start_scheduling(message *m_ptr)
 		 * from the parent */
 		rmp->priority   = rmp->max_priority;
 		rmp->time_slice = m_ptr->m_lsys_sched_scheduling_start.quantum;
+		rmp->cpu_exhaust_count = 0; /* Reset the exhaustion counter for new processes */
 		break;
 		
 	case SCHEDULING_INHERIT:
@@ -206,6 +206,7 @@ int do_start_scheduling(message *m_ptr)
 
 		rmp->priority = schedproc[parent_nr_n].priority;
 		rmp->time_slice = schedproc[parent_nr_n].time_slice;
+		rmp->cpu_exhaust_count = 0; /* Ensure the inherited process starts with a clean counter */
 		break;
 		
 	default: 
