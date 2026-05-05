@@ -365,7 +365,7 @@ void balance_queues(void)
 					rmp->priority += 1; 
 					
 					/* Console notification for penalty */
-					kprintf("SCHED: Process %d PENALIZED. Count: %u, New Priority: %d\n", 
+					printf("SCHED: Process %d PENALIZED. Count: %u, New Priority: %d\n", 
 						rmp->endpoint, rmp->cpu_exhaust_count, rmp->priority);
 				}
 			} 
@@ -375,7 +375,7 @@ void balance_queues(void)
 					rmp->priority -= 1; 
 					
 					/* Console notification for reward */
-					kprintf("SCHED: Process %d REWARDED. Count: %u, New Priority: %d\n", 
+					printf("SCHED: Process %d REWARDED. Count: %u, New Priority: %d\n", 
 						rmp->endpoint, rmp->cpu_exhaust_count, rmp->priority);
 				}
 			}
