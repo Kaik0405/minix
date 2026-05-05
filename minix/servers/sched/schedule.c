@@ -356,15 +356,39 @@ void balance_queues(void)
 	struct schedproc *rmp;
 	int r, proc_nr;
 
-	for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
+	for (proc_nr = 0, rmp = schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
 		if (rmp->flags & IN_USE) {
-			if (rmp->priority > rmp->max_priority) {
-				rmp->priority -= 1; /* increase priority */
-				schedule_process_local(rmp);
+			
+			/* if the process exhausted its quantum 3 or more times */
+			if (rmp->cpu_exhaust_count >= 3) {
+				if (rmp->priority < MIN_USER_Q) {
+					rmp->priority += 1; 
+					
+					/* Console notification for penalty */
+					kprintf("SCHED: Process %d PENALIZED. Count: %u, New Priority: %d\n", 
+						rmp->endpoint, rmp->cpu_exhaust_count, rmp->priority);
+				}
+			} 
+			/* if the process was interactive and never exhausted its quantum */
+			else if (rmp->cpu_exhaust_count == 0) {
+				if (rmp->priority > rmp->max_priority) {
+					rmp->priority -= 1; 
+					
+					/* Console notification for reward */
+					kprintf("SCHED: Process %d REWARDED. Count: %u, New Priority: %d\n", 
+						rmp->endpoint, rmp->cpu_exhaust_count, rmp->priority);
+				}
 			}
+
+			/* Reset the counter for the next 5-second window */
+			rmp->cpu_exhaust_count = 0;
+
+			/* Update the kernel with the new scheduling parameters */
+			schedule_process_local(rmp);
 		}
 	}
 
+	/* Reset the timer for the next execution of balance_queues */
 	if ((r = sys_setalarm(balance_timeout, 0)) != OK)
 		panic("sys_setalarm failed: %d", r);
 }
